@@ -1,0 +1,60 @@
+const socket = io()
+
+let name;
+let textarea = document.getElementById('inputmsg');
+let messageArea = document.querySelector('.message-area');
+
+do {
+    name = prompt("Enter Your Name: ");
+} while (!name);
+
+
+textarea.addEventListener('keyup', (e) => {
+    if (e.key == 'Enter') {
+        sendMessage(e.target.value);
+    }
+});
+
+function sendMessage(message) {
+    let msg = {
+        user: name,
+        message: message.trim()
+    }
+    //Appending in ui
+    appendMessage(msg, 'outgoinig');
+
+    textarea.value = "";
+    scrollBottom();
+
+    //send to server
+    socket.emit('message', msg);
+
+}
+
+function appendMessage(msg, type) {
+    let mainDiv = document.createElement('div');
+    let className = type;
+    mainDiv.classList.add(type, 'message');
+
+    let markup = `
+    <h4>${msg.user}</h4>
+    <p>${msg.message}</p>
+    `;
+
+    mainDiv.innerHTML = markup;
+
+    messageArea.appendChild(mainDiv);
+    textarea.text = "";
+}
+
+function scrollBottom() {
+    messageArea.scrollTop = messageArea.scrollHeight;
+}
+
+//reciving brodcasted msg
+socket.on('message', (msg) => {
+    console.log(msg);
+    appendMessage(msg, 'incoming');
+    scrollBottom();
+})
+
